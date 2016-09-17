@@ -2,8 +2,8 @@
 -- PostgreSQL database dump
 --
 
--- Dumped from database version 9.5.1
--- Dumped by pg_dump version 9.5.1
+-- Dumped from database version 9.5.4
+-- Dumped by pg_dump version 9.5.4
 
 SET statement_timeout = 0;
 SET lock_timeout = 0;
@@ -42,6 +42,19 @@ COMMENT ON EXTENSION pg_trgm IS 'text similarity measurement and index searching
 
 
 SET search_path = public, pg_catalog;
+
+--
+-- Name: bit_position_array(bigint); Type: FUNCTION; Schema: public; Owner: -
+--
+
+CREATE FUNCTION bit_position_array(x bigint) RETURNS integer[]
+    LANGUAGE sql IMMUTABLE
+    AS $$
+      select array_agg(i) 
+        from generate_series(0, floor(log(2, x))::integer) i
+       where (x & (1::bigint << i)) > 0;
+      $$;
+
 
 --
 -- Name: favorites_insert_trigger(); Type: FUNCTION; Schema: public; Owner: -
@@ -7042,6 +7055,13 @@ CREATE INDEX index_user_name_change_requests_on_user_id ON user_name_change_requ
 
 
 --
+-- Name: index_users_on_bit_prefs_array; Type: INDEX; Schema: public; Owner: -
+--
+
+CREATE INDEX index_users_on_bit_prefs_array ON users USING gin (bit_position_array(bit_prefs));
+
+
+--
 -- Name: index_users_on_email; Type: INDEX; Schema: public; Owner: -
 --
 
@@ -7403,4 +7423,6 @@ INSERT INTO schema_migrations (version) VALUES ('20160526174848');
 INSERT INTO schema_migrations (version) VALUES ('20160820003534');
 
 INSERT INTO schema_migrations (version) VALUES ('20160822230752');
+
+INSERT INTO schema_migrations (version) VALUES ('20160917180923');
 
